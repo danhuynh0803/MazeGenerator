@@ -1,7 +1,7 @@
 
 public class Maze {
-    private int length;
-    private int width;
+    public int length;
+    public int width;
     public Node Start;
     public Node End;
     public Node[][] board;

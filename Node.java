@@ -7,6 +7,8 @@ public class Node {
     Node south;
     Node east;
     Node west;
+    public int x;
+    public in y;
 
     public Node() {
         this.north = null;
