@@ -1,64 +1,136 @@
 import java.util.*;
+import java.util.Random;
 
- public class Maze {
-    public int length;
-    public int width;
+public class Maze {
+    private int length;
+    private int width;
     public Node Start;
     public Node End;
     public Node[][] board;
+    public Node Current;
+    private boolean[][] visited;
 
-    public Maze(int length, int width, double p){
+
+    public Maze(int length,int width){
         this.length = length;
         this.width = width;
-        this.board = new Node[length][width];
-
-        for(int i=0;i< length;i++){
-            for(int j=0;j < width;j++){
-                this.board[i][j] = new Node(i, j);
-                // Set the node as being a wall
-                // depending on the probability 'p' that is passed in
-                if (Math.random() < p)
-                {
-                    this.board[i][j].isBlocked = true;
-                }
+        this.board = new Node[length+2][width+2];
+        this.Current = null;
+        for(int i=0;i< length+2;i++){
+            for(int j=0;j < width+2;j++){
+                this.board[i][j] = new Node(i,j);
             }
         }
 
-        // Set Start of maze and the End of maze
-        // By default these two nodes should be unblocked
-        this.Start = this.board[0][0];
-        this.Start.f = 0;
-        this.Start.g = 0;
-        this.Start.h = 0;
+        init();
+        generate();
+        this.Start = this.board[1][1];
+        this.Current = this.Start;
+        // TODO play around with where to put the End node
+        this.End = this.board[length][width];
+        setNeighbors();
+    }
 
-        this.End = this.board[length-1][width-1];
-        this.Start.isBlocked = false;
-        this.End.isBlocked = false;
+    public void init(){
+        // initialize border cells as already visited
+        visited = new boolean[length+2][width+2];
+        for( int i = 0; i < length+2 ; i++){
+            visited[i][0] = true;
+            visited[i][length+1] = true;
+        }
+        for ( int i = 0; i < width+2; i++){
+            visited[0][i] = true;
+            visited[width+1][i] = true;
+        }
 
-        // Set the connections for each node as long as the adjacent node is not blocked
-        // A node can have a max of four adjacent connections:
-        // North, South, East, West
-        for(int i=0;i< length;i++){
-            for(int j=0;j< width;j++){
-                // Set West
-                if( i>0 && !this.board[i-1][j].isBlocked){
-                    this.board[i][j].neighbors.add(this.board[i-1][j]);
+        // initialze all walls as present
+        for(int i=0;i< length+2;i++){
+            for(int j=0;j< width+2;j++){
+                this.board[i][j].northwall = true;
+                this.board[i][j].eastwall = true;
+                this.board[i][j].southwall = true;
+                this.board[i][j].westwall = true;
+            }
+        }
+
+    }
+
+    // Set the connection nodes for each node
+    private void setNeighbors()
+    {
+        for (int x = 0; x < length+2; ++x)
+        {
+            for (int y = 0; y < width+2; ++y)
+            {
+                // North
+                if (!this.board[x][y].northwall)
+                {
+                    this.board[x][y].neighbors.add(this.board[x][y-1]);
                 }
-                // Set East
-                if( i< this.length-1 && !this.board[i+1][j].isBlocked){
-                    this.board[i][j].neighbors.add(this.board[i+1][j]);
+                // South
+                if (!this.board[x][y].southwall)
+                {
+                    this.board[x][y].neighbors.add(this.board[x][y+1]);
                 }
-                // Set South
-                if( j< this.width-1 && !this.board[i][j+1].isBlocked){
-                    this.board[i][j].neighbors.add(this.board[i][j+1]);
+                // East
+                if (!this.board[x][y].eastwall)
+                {
+                    this.board[x][y].neighbors.add(this.board[x+1][y]);
                 }
-                // Set North
-                if (j > 0 && !this.board[i][j-1].isBlocked){
-                    this.board[i][j].neighbors.add(this.board[i][j-1]);
+                // West
+                if (!this.board[x][y].westwall)
+                {
+                    this.board[x][y].neighbors.add(this.board[x-1][y]);
                 }
             }
         }
     }
+
+    // Generate maze using DFS starting at position x, y
+    public void GenerateMaze(int x, int y){
+        visited[x][y] = true;
+
+        while(!visited[x][y+1]|| !visited[x+1][y] || !visited[x][y-1] || !visited[x-1][y]) {
+
+            while(true){
+                Random rand = new Random();
+                int n = rand.nextInt(4);
+                if ( n == 0 && !visited[x][y+1]){
+                    this.board[x][y].southwall = false;
+                    this.board[x][y+1].northwall = false;
+                    GenerateMaze(x, y+1);
+                    break;
+                }
+                else if ( n == 1 && !visited[x+1][y]){
+                    this.board[x][y].eastwall = false;
+                    this.board[x+1][y].westwall = false;
+                    GenerateMaze(x+1, y);
+                    break;
+                }
+                else if ( n == 2 && !visited[x][y-1]){
+                    this.board[x][y].northwall = false;
+                    this.board[x][y-1].southwall = false;
+                    GenerateMaze(x, y-1);
+                    break;
+                }
+                else if( n == 3 && !visited[x-1][y]){
+                    this.board[x][y].westwall = false;
+                    this.board[x-1][y].eastwall = false;
+                    GenerateMaze(x-1, y);
+                    break;
+                }
+            }
+        }
+    }
+
+    public void generate(){
+        GenerateMaze(1,1);
+    }
+
+
+    //========================================
+    // A* functions
+    // =======================================
 
     public boolean isDestination(Node node)
     {
@@ -70,7 +142,7 @@ import java.util.*;
 
     public double calculateHManhattan(int row, int col)
     {
-        return Math.abs(row - (length-1)) + Math.abs(col - (width-1));
+        return Math.abs(row - End.x) + Math.abs(col - End.y);
     }
 
     public double calculateHValue(int row, int col)
@@ -79,9 +151,9 @@ import java.util.*;
     }
 
     // If a path is found, trace which nodes were the optimal path
-    public void tracePath()
+    private void tracePath(Node lastVisitedNode)
     {
-        Node pathPtr = End;
+        Node pathPtr = lastVisitedNode;
         while (pathPtr != Start)
         {
             pathPtr.isVisited = true;
@@ -95,15 +167,19 @@ import java.util.*;
 
         Set<Node> openSet = new LinkedHashSet();
         // keeps track of the nodes we've checked to be the best 'f' value
-        boolean[][] closedSet = new boolean[length][width];
+        boolean[][] closedSet = new boolean[length+2][width+2];
 
         // Add the Starting node to the openset
-        Node lowestFNode = null;
+        Start.g = 0;
+        Start.h = 0;
+        Start.f = 0;
         openSet.add(Start);
 
+        Node lowestFNode = null;
         while(!openSet.isEmpty())
         {
             lowestFNode = getLowestNode(openSet);
+            //System.out.println("Next node: \t x:" + lowestFNode.x + "\ty:" + lowestFNode.y);
 
             // pop the lowestFNode from the open set
             // while adding it to the closedSet.
@@ -123,13 +199,12 @@ import java.util.*;
                 {
                     // If it is, then set the parent node
                     currentNeighbor.parent = lowestFNode;
+                    tracePath(currentNeighbor);
                     hasPath = true;
-                    tracePath();
                 }
                 // Check if the neighbor is on the closed list
                 // or if it's blocked 
-                else if (closedSet[cx][cy] == false &&
-                         currentNeighbor.isBlocked == false)
+                else if (closedSet[cx][cy] == false)
                 {
                     // Recalculate the neighbor's 'f'
                     newG = lowestFNode.g + 1.0; 
@@ -150,6 +225,10 @@ import java.util.*;
                 }
             }
         }
+
+        // Trace that path based on the last visited node
+        // If a viable path is found, then this should start at End
+        //tracePath(lowestFNode);
 
         // No viable path available
         if (hasPath)
@@ -178,36 +257,85 @@ import java.util.*;
         return q;
     }
 
+
+
     public void print(){
-        for (int i = 0; i < this.length; i++) {
-            for (int j = 0; j < this.width; j++) {
-                if(this.board[i][j] == this.Start){  
-                    System.out.print(" S ");
+        for (int i=1; i< width+1;i++){
+            for(int j=1; j < length+1;j++){
+                if(this.board[j][i].northwall){
+                    System.out.print("+---");
                 }
-                else if (this.board[i][j] == this.End) {
-                    System.out.print(" E ");
+                else if (this.board[j][i].isVisited) {
+                    System.out.print("+ " + "\033[31;1mV\033[0m" + " ");
                 }
-                else if(this.board[i][j].isBlocked == false){
-                    // Print the found path using red 'V's
-                    if (this.board[i][j].isVisited) 
-                        System.out.print("\033[31;1m V \033[0m");
-                    else 
-                        System.out.print("   ");
-                }
-                // Walls
-                else{
-                    System.out.print(" X ");
+                else {
+                    System.out.print("+   ");
                 }
             }
-            System.out.println();
+            System.out.println("+");
+
+            for(int j=1;j < length+1;j++){
+                if(this.board[j][i].westwall){
+                    if(this.board[j][i] == Start){
+                        System.out.print("| A ");
+                    }
+                    else if (this.board[j][i] == End) {
+                        System.out.print("| E ");
+                    }
+                    else if (this.board[j][i].isVisited) {
+                        //System.out.print("| V ");
+                        System.out.print("| \033[31;1mV\033[0m ");
+                    }
+                    else {
+                        System.out.print("|   ");
+                    }
+                }
+                else {
+                    if(this.board[j][i] == Start){
+                        System.out.print("  A ");
+                    }
+                    else if (this.board[j][i] == End) {
+                        System.out.print("  E ");
+                    }
+                    else if (this.board[j][i].isVisited) {
+                        System.out.print(" \033[31;1mV\033[0m  ");
+                    }
+                    else {
+                        System.out.print("    ");
+                    }
+                }
+                /*if(this.board[j][i].eastwall){
+                  System.out.print("  |");
+                }
+                else {
+                System.out.print("   ");
+                }*/
+            }
+            System.out.println("|");
+            if(i == width){
+                for(int j=1; j < length+1;j++){
+                    if(this.board[j][i].southwall){
+                        System.out.print("+---");
+                    }
+                    else if (this.board[j][i].isVisited) {
+                        System.out.print("+ " + "\033[31;1mV\033[0m" + " ");
+                    }
+                    else {
+                        System.out.print("+   ");
+                    }
+                }
+                System.out.println("+");
+
+            }
         }
     }
-    
+
     // Method for debugging purposes
     // Counts and returns the number of 
     // adjecent connections for a particular node
-    static int displayConnections(Node node)
+    static int displayN(Node node)
     {
         return node.neighbors.size();
     }
+
 }
