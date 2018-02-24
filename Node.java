@@ -10,8 +10,9 @@ public class Node {
     Node parent;
     // Heuristic for A* search
     double f, g, h;
+    int x, y;
 
-    public Node() {
+    public Node(int x, int y) {
         this.isBlocked = false;
         this.isVisited = false;
 
@@ -19,5 +20,23 @@ public class Node {
         f = Double.MAX_VALUE;
         g = Double.MAX_VALUE;
         h = Double.MAX_VALUE;
+
+        // Position of the node on the board
+        this.x = x;
+        this.y = y;
+    }
+
+    public Node(int x, int y, Node parent) {
+        this.isBlocked = false;
+        this.isVisited = false;
+
+        this.parent = parent;
+        f = Double.MAX_VALUE;
+        g = Double.MAX_VALUE;
+        h = Double.MAX_VALUE;
+
+        // Position of the node on the board
+        this.x = x;
+        this.y = y;
     }
 }

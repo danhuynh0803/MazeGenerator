@@ -14,7 +14,7 @@ import java.util.*;
 
         for(int i=0;i< length;i++){
             for(int j=0;j < width;j++){
-                this.board[i][j] = new Node();
+                this.board[i][j] = new Node(i, j);
                 // Set the node as being a wall
                 // depending on the probability 'p' that is passed in
                 if (Math.random() < p)
@@ -27,6 +27,10 @@ import java.util.*;
         // Set Start of maze and the End of maze
         // By default these two nodes should be unblocked
         this.Start = this.board[0][0];
+        this.Start.f = 0;
+        this.Start.g = 0;
+        this.Start.h = 0;
+
         this.End = this.board[length-1][width-1];
         this.Start.isBlocked = false;
         this.End.isBlocked = false;
@@ -74,9 +78,9 @@ import java.util.*;
         }
     }
 
-    public boolean isDestination(int row, int col)
+    public boolean isDestination(Node node)
     {
-        if(board[row][col] == End)
+        if(node == End)
             return true;
         else   
             return false;
@@ -100,18 +104,66 @@ import java.util.*;
     public void aStarSearch()
     {
         Set<Node> openSet = new LinkedHashSet();
-        Set<Node> closedSet = new LinkedHashSet();
+        // keeps track of the nodes we've checked to be the best 'f' value
+        boolean[][] closedSet = new boolean[length][width];
 
         // Add the Starting node to the openset
-        Node q;
+        Node lowestFNode = null;
         openSet.add(Start);
 
         while(!openSet.isEmpty())
         {
-            q = getLowestNode(openSet);
+            lowestFNode = getLowestNode(openSet);
+
+            // pop the lowestFNode from the open set
+            // while adding it to the closedSet.
+            // This indicates that the node was found to be the best option
+            openSet.remove(lowestFNode);
+            closedSet[lowestFNode.x][lowestFNode.y] = true;
+
+            // Generate the the neighbors and recalculate the f(n) = g(n) + h(n)
+            double newG, newF, newH;
+            for (int i = 0; i < lowestFNode.neighbors.size(); ++i)
+            {
+                Node currentNeighbor = lowestFNode.neighbors.get(i);
+                int cx = currentNeighbor.x;
+                int cy = currentNeighbor.y;
+                // Check that the neighbor is the destination Node
+                if (isDestination(currentNeighbor))
+                {
+                    // If it is, then set the parent node
+                    currentNeighbor.parent = lowestFNode;
+
+                    System.out.println("Viable path from Start to End!"); 
+                    return;
+                }
+                // Check if the neighbor is on the closed list
+                // or if it's blocked 
+                else if (closedSet[cx][cy] == false &&
+                         currentNeighbor.isBlocked == false)
+                {
+                    // Recalculate the neighbor's 'f'
+                    newG = lowestFNode.g + 1.0; 
+                    newH = calculateHManhattan(cx, cy);
+                    newF = newG + newH;
+
+                    // Add the current neighbor to the open list
+                    // since it's a candidate to be checked for the lowest 'f'
+                    currentNeighbor.g = newG;
+                    currentNeighbor.h = newH;
+                    currentNeighbor.f = newF;
+                    currentNeighbor.parent = lowestFNode;
+
+                    // Since we're using a set, there's no need to check if 
+                    // that node has already been inserted.
+                    openSet.add(currentNeighbor);
+
+                }
+            }
         }
 
-
+        
+       
     }
 
     // Returns the node with the lowest 'f' within the open set
