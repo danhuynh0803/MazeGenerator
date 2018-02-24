@@ -96,8 +96,15 @@ import java.util.*;
         return ((double) Math.sqrt((row-(length-1)*(row-(length-1)) + (col-(width-1)*(col-(width-1))))));
     }
 
+    // If a path is found, trace which nodes were the optimal path
     public void tracePath()
     {
+        Node pathPtr = End;
+        while (pathPtr != Start)
+        {
+            pathPtr.isVisited = true;
+            pathPtr = pathPtr.parent;
+        }
     }
 
     public void aStarSearch()
@@ -121,8 +128,6 @@ import java.util.*;
             // This indicates that the node was found to be the best option
             openSet.remove(lowestFNode);
             closedSet[lowestFNode.x][lowestFNode.y] = true;
-            // Set the node as being visited for printing the chosen path
-            lowestFNode.isVisited = true;
 
             // Generate the the neighbors and recalculate the f(n) = g(n) + h(n)
             double newG, newF, newH;
@@ -137,6 +142,7 @@ import java.util.*;
                     // If it is, then set the parent node
                     currentNeighbor.parent = lowestFNode;
                     hasPath = true;
+                    tracePath();
                 }
                 // Check if the neighbor is on the closed list
                 // or if it's blocked 
@@ -200,12 +206,11 @@ import java.util.*;
                     System.out.print(" E ");
                 }
                 else if(this.board[i][j].isBlocked == false){
-                    // For displaying connections of each node
-                    //System.out.print(" " + displayConnections(this.board[i][j]) + " ");
+                    // Print the found path using red 'V's
                     if (this.board[i][j].isVisited) 
-                        System.out.print(" V ");
+                        System.out.print("\033[31;1m V \033[0m");
                     else 
-                        System.out.print(" . ");
+                        System.out.print("   ");
                 }
                 // Walls
                 else{
