@@ -98,11 +98,12 @@ import java.util.*;
 
     public void tracePath()
     {
-        
     }
 
     public void aStarSearch()
     {
+        boolean hasPath = false;
+
         Set<Node> openSet = new LinkedHashSet();
         // keeps track of the nodes we've checked to be the best 'f' value
         boolean[][] closedSet = new boolean[length][width];
@@ -120,6 +121,8 @@ import java.util.*;
             // This indicates that the node was found to be the best option
             openSet.remove(lowestFNode);
             closedSet[lowestFNode.x][lowestFNode.y] = true;
+            // Set the node as being visited for printing the chosen path
+            lowestFNode.isVisited = true;
 
             // Generate the the neighbors and recalculate the f(n) = g(n) + h(n)
             double newG, newF, newH;
@@ -133,9 +136,7 @@ import java.util.*;
                 {
                     // If it is, then set the parent node
                     currentNeighbor.parent = lowestFNode;
-
-                    System.out.println("Viable path from Start to End!"); 
-                    return;
+                    hasPath = true;
                 }
                 // Check if the neighbor is on the closed list
                 // or if it's blocked 
@@ -162,7 +163,11 @@ import java.util.*;
             }
         }
 
-        
+        // No viable path available
+        if (hasPath)
+            System.out.println("Found a viable path from Start to End");        
+        else
+            System.out.println("No viable path found");        
        
     }
 
@@ -196,10 +201,13 @@ import java.util.*;
                 }
                 else if(this.board[i][j].isBlocked == false){
                     // For displaying connections of each node
-                    System.out.print(" " + displayConnections(this.board[i][j]) + " ");
-
-                    //System.out.print("-");
+                    //System.out.print(" " + displayConnections(this.board[i][j]) + " ");
+                    if (this.board[i][j].isVisited) 
+                        System.out.print(" V ");
+                    else 
+                        System.out.print(" . ");
                 }
+                // Walls
                 else{
                     System.out.print(" X ");
                 }
