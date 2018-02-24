@@ -12,6 +12,11 @@ public class Node {
     double f, g, h;
     int x, y;
 
+    public boolean northwall;
+    public boolean southwall;
+    public boolean eastwall;
+    public boolean westwall;
+
     public Node(int x, int y) {
         this.isBlocked = false;
         this.isVisited = false;
