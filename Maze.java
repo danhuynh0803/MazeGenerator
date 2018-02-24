@@ -60,24 +60,6 @@ import java.util.*;
         }
     }
 
-    //checks to see if current node is in range of grid
-    public boolean isValid(int row, int col)
-    {
-        return (row >=0) && (row < length) && (col >= 0) && (col < width);
-    }
-
-    public boolean isBlocked(int row, int col)
-    {
-        if(board[row][col].isBlocked)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
     public boolean isDestination(Node node)
     {
         if(node == End)
