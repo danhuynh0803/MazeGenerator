@@ -27,7 +27,7 @@ public class Maze {
         this.Start = this.board[1][1];
         this.Current = this.Start;
         // TODO play around with where to put the End node
-        this.End = this.board[length-3][width-3];
+        this.End = this.board[length][width];
         setNeighbors();
     }
 
@@ -58,9 +58,9 @@ public class Maze {
     // Set the connection nodes for each node
     private void setNeighbors()
     {
-        for (int x = 1; x < length-1; ++x)
+        for (int x = 0; x < length+2; ++x)
         {
-            for (int y = 1; y < width-1; ++y)
+            for (int y = 0; y < width+2; ++y)
             {
                 // North
                 if (!this.board[x][y].northwall)
@@ -167,7 +167,7 @@ public class Maze {
 
         Set<Node> openSet = new LinkedHashSet();
         // keeps track of the nodes we've checked to be the best 'f' value
-        boolean[][] closedSet = new boolean[length][width];
+        boolean[][] closedSet = new boolean[length+2][width+2];
 
         // Add the Starting node to the openset
         Start.g = 0;
@@ -179,6 +179,7 @@ public class Maze {
         while(!openSet.isEmpty())
         {
             lowestFNode = getLowestNode(openSet);
+            //System.out.println("Next node: \t x:" + lowestFNode.x + "\ty:" + lowestFNode.y);
 
             // pop the lowestFNode from the open set
             // while adding it to the closedSet.
@@ -198,6 +199,7 @@ public class Maze {
                 {
                     // If it is, then set the parent node
                     currentNeighbor.parent = lowestFNode;
+                    tracePath(currentNeighbor);
                     hasPath = true;
                 }
                 // Check if the neighbor is on the closed list
@@ -226,7 +228,7 @@ public class Maze {
 
         // Trace that path based on the last visited node
         // If a viable path is found, then this should start at End
-        tracePath(lowestFNode);
+        //tracePath(lowestFNode);
 
         // No viable path available
         if (hasPath)
@@ -280,25 +282,22 @@ public class Maze {
                     else if (this.board[j][i] == End) {
                         System.out.print("| E ");
                     }
-                    /*
                     else if (this.board[j][i].isVisited) {
                         //System.out.print("| V ");
                         System.out.print("| \033[31;1mV\033[0m ");
                     }
-                    */
                     else {
                         System.out.print("|   ");
                     }
                 }
                 else {
                     if(this.board[j][i] == Start){
-                        System.out.print("| A ");
+                        System.out.print("  A ");
                     }
                     else if (this.board[j][i] == End) {
                         System.out.print("  E ");
                     }
                     else if (this.board[j][i].isVisited) {
-                        //System.out.print("| V ");
                         System.out.print(" \033[31;1mV\033[0m  ");
                     }
                     else {
@@ -334,7 +333,7 @@ public class Maze {
     // Method for debugging purposes
     // Counts and returns the number of 
     // adjecent connections for a particular node
-    static int displayConnections(Node node)
+    static int displayN(Node node)
     {
         return node.neighbors.size();
     }
